@@ -1,3 +1,9 @@
+![logo](src/main/resources/assets/continuity/neo_continuity_icon.png)
+
+# NeoContinuity
+
+NeoContinuity is an unofficial fork of Continuity, aiming to run Continuity natively on NeoForge and reduce some of the redundant FFAPI (Forgified-Fabric-API) dependencies using NeoForge API. Do **NOT** report issues encountered with this mod to the original.
+
 # Continuity
 
 Continuity is a Fabric mod that allows resource packs that use the OptiFine connected textures format, OptiFine emissive textures format (only for blocks and item models), or OptiFine custom block layers format to work without OptiFine.
