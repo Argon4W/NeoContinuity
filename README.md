@@ -40,7 +40,7 @@ NeoForge support of Continuity relies heavily on Sinytra Connector and FFAPI (Fo
 
 ## ⚙️How it works
 
-NeoContinuity does not rely on the entire FFAPI (Forgified-Fabric-API) package, I removed dependencies on unnecessary FFAPi sub-packages, and replaced some of the FFAPI calls with native NeoForge API to reduce the jar size and mitigate compatibility issues caused by FFAPI. Also, I manually modified some of the FFAPI sub-packages to remove the dependency on forgified-fabric-loader which cannot be removed in regular FFAPi environment and causes significant space occupation in jar.
+NeoContinuity does not rely on the entire FFAPI (Forgified-Fabric-API) package, I removed dependencies on unnecessary FFAPI sub-packages, and replaced some of the FFAPI calls with native NeoForge API to reduce the jar size and mitigate compatibility issues caused by FFAPI. Also, I manually modified some of the FFAPI sub-packages to remove the dependency on forgified-fabric-loader which cannot be removed in regular FFAPi environment and causes significant space occupation in jar.
 
 # Continuity
 
