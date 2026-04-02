@@ -143,7 +143,7 @@ dependencies {
     //implementation "org.sinytra.forgified-fabric-api:fabric-networking-api-v1:4.2.2+eeccd5b319"
     implementation "org.sinytra.forgified-fabric-api:fabric-renderer-api-v1:3.4.0+acb05a3919"
     //implementation "org.sinytra.forgified-fabric-api:fabric-resource-loader-v0:1.3.0+bcae32ce19"
-    implementation "org.sinytra.forgified-fabric-api:fabric-renderer-indigo:1.7.0-slim+4198af7119"
+    implementation "org.sinytra.forgified-fabric-api:fabric-renderer-indigo:1.7.1+9125b6dc19"
     //implementation "org.sinytra:fabric-loader:2.6.14+0.15.10+1.21" //Enable this if using official forgified-fabric-renderer-indigo
 
     jarJar(group: "org.sinytra.forgified-fabric-api", name: "fabric-api-base", version: "[0.4.42+d1308ded19,)")
@@ -158,7 +158,7 @@ dependencies {
         // Remove "-slim" if using official forgified-fabric-renderer-indigo
         version {
             strictly("[1.7.0-slim+4198af7119,)")
-            prefer("1.7.0-slim+4198af7119")
+            prefer("1.7.1+9125b6dc19")
         }
     }
     //jarJar(group: "org.sinytra", name: "fabric-loader", version: "[2.6.14+0.15.10+1.21,)") //Enable this if using official forgified-fabric-renderer-indigo

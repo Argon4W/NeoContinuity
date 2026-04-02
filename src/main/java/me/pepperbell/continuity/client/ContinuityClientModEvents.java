@@ -13,6 +13,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -47,7 +48,7 @@ public class ContinuityClientModEvents {
     }
 
     //Replacement for ModelWrappingHandler.init(), use ModelEvent.ModifyBakingResult to wrap baked models. Remove redundant fabric-model-loading-api-v1 dependency.
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         ModelWrappingHandler wrappingHandler = ((ModelLoaderExtension) event.getModelBakery()).continuity$getModelWrappingHandler();
 
