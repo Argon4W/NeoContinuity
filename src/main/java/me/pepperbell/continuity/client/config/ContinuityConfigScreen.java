@@ -59,7 +59,7 @@ public class ContinuityConfigScreen extends Screen {
 
 	@Override
 	public void onClose() {
-		minecraft.setScreen(parent);
+		minecraft.gui.setScreen(parent);
 	}
 
 	private void saveValues() {
@@ -152,7 +152,7 @@ public class ContinuityConfigScreen extends Screen {
 			RELOAD_WORLD_RENDERER {
 				@Override
 				public void onSave() {
-					Minecraft.getInstance().levelRenderer.allChanged();
+					Minecraft.getInstance().levelExtractor.allChanged();
 				}
 			};
 

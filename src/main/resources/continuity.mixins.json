@@ -9,7 +9,7 @@
     "AtlasManagerMixin",
     "CuboidItemModelWrapperMixin",
     "CuboidItemModelWrapperUnbakedMixin",
-    "LevelRendererMixin",
+    "LevelExtractorMixin",
     "MultiPackResourceManagerMixin",
     "SpriteLoaderMixin",
     "SpriteSourceListMixin",
