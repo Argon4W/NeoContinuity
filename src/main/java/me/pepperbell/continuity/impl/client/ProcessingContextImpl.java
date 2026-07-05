@@ -46,10 +46,6 @@ public class ProcessingContextImpl implements QuadProcessor.ProcessingContext {
 		mutableMesh.outputTo(emitter);
 	} */
 
-	public QuadCollection build() {
-		return mutableMesh.build();
-	}
-
 	public void reset() {
 		// mutableMesh.clear();
 		mutableMesh.reset();

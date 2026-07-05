@@ -105,7 +105,7 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 
 			scratch.addAll(emitter);
 
-			parts.add(new SimpleModelWrapper(scratch.build(), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(scratch.build(container), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();

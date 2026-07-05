@@ -16,7 +16,7 @@ public final class QuadProcessors {
 	private static ProcessorHolder[] processorHolders = new ProcessorHolder[0];
 	private static final BlockStateKeyCache CACHE = new BlockStateKeyCache();
 
-	public static Function<TextureAtlasSprite, Slice> getCache(BlockState state) {
+	public static /* Function<TextureAtlasSprite, Slice> */ SpriteKeyCache getCache(BlockState state) {
 		return CACHE.apply(state);
 	}
 
@@ -112,8 +112,8 @@ public final class QuadProcessors {
 		}
 	}
 
-	private static class SpriteKeyCache implements Function<TextureAtlasSprite, Slice> {
-		private final Reference2ReferenceOpenHashMap<TextureAtlasSprite, Slice> map = new Reference2ReferenceOpenHashMap<>(4, Hash.FAST_LOAD_FACTOR);
+	/* private */ public static class SpriteKeyCache implements Function<TextureAtlasSprite, Slice> {
+		/* private */ public final Reference2ReferenceOpenHashMap<TextureAtlasSprite, Slice> map = new Reference2ReferenceOpenHashMap<>(4, Hash.FAST_LOAD_FACTOR);
 		private final StampedLock lock = new StampedLock();
 		private final BlockState state;
 

@@ -1,14 +1,12 @@
 package me.pepperbell.continuity.client.model;
 
 import java.util.List;
-import java.util.function.Function;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 // import net.fabricmc.fabric.impl.client.indigo.renderer.mesh.MutableQuadViewImpl;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.resources.model.SimpleModelWrapper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
-import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.DelegateBlockStateModel;
 import net.neoforged.neoforge.client.model.quad.MutableQuad;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +31,7 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 	public static final int PASSES = 4;
 
 	protected final BlockState defaultState;
-	protected volatile Function<TextureAtlasSprite, QuadProcessors.Slice> defaultSliceFunc;
+	protected volatile /* Function<TextureAtlasSprite, QuadProcessors.Slice> */ QuadProcessors.SpriteKeyCache defaultSliceFunc;
 
 	public CtmBlockStateModel(BlockStateModel wrapped, BlockState defaultState) {
 		super(wrapped);
@@ -89,19 +87,28 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 		QuadCollectionBuilder emitter = quadTransform.processingContext.getExtraQuadEmitter();
 		QuadCollectionBuilder scratch = quadTransform.scratchEmitter;
 
-		for (BlockStateModelPart part : quadTransform.scratchRawParts) {
+		for (int i = 0, s1 = quadTransform.scratchRawParts.size(); i < s1; i ++) {
+			BlockStateModelPart part = quadTransform.scratchRawParts.get(i);
+
 			emitter.reset();
 			scratch.reset();
 
-			for (Direction direction : RenderUtil.DIRECTIONS) {
+			for (int j = 0, s2 = RenderUtil.DIRECTIONS.length; j < s2; j ++) {
+				Direction direction = RenderUtil.DIRECTIONS[j];
+
 				emitter.setDirection(direction);
 				scratch.setDirection(direction);
 
-				for (BakedQuad quad : part.getQuads(direction)) {
-					var toEmit = scratch.getScratchQuad(quad);
+				List<BakedQuad> quads = part.getQuads(direction);
 
-					if (quadTransform.transform(toEmit)) {
-						scratch.emitQuad();
+				for (int k = 0, s3 = quads.size(); k < s3; k ++) {
+					BakedQuad quad = quads.get(k);
+					MutableQuad toEmit = scratch.getScratchQuad(quad);
+
+					switch (quadTransform.transform(toEmit)) {
+						case DISCARD -> {}
+						case NO_TRANSFORM -> scratch.addQuad(quad);
+						default -> scratch.emitQuad();
 					}
 				}
 			}
@@ -109,17 +116,22 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 			emitter.setDirection(null);
 			scratch.setDirection(null);
 
-			for (BakedQuad quad : part.getQuads(null)) {
-				var toEmit = scratch.getScratchQuad(quad);
+			List<BakedQuad> quads = part.getQuads(null);
 
-				if (quadTransform.transform(toEmit)) {
-					scratch.emitQuad();
+			for (int k = 0, s3 = quads.size(); k < s3; k ++) {
+				BakedQuad quad = quads.get(k);
+				MutableQuad toEmit = scratch.getScratchQuad(quad);
+
+				switch (quadTransform.transform(toEmit)) {
+					case DISCARD -> {}
+					case NO_TRANSFORM -> scratch.addQuad(quad);
+					default -> scratch.emitQuad();
 				}
 			}
 
 			scratch.addAll(emitter);
 
-			parts.add(new SimpleModelWrapper(scratch.build(), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(scratch.build(container), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();
@@ -147,9 +159,9 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 		return null;
 	}
 
-	protected Function<TextureAtlasSprite, QuadProcessors.Slice> getSliceFunc(BlockState state) {
+	protected /* Function<TextureAtlasSprite, QuadProcessors.Slice> */ QuadProcessors.SpriteKeyCache getSliceFunc(BlockState state) {
 		if (state == defaultState) {
-			Function<TextureAtlasSprite, QuadProcessors.Slice> sliceFunc = defaultSliceFunc;
+			/* Function<TextureAtlasSprite, QuadProcessors.Slice> */ QuadProcessors.SpriteKeyCache sliceFunc = defaultSliceFunc;
 			if (sliceFunc == null) {
 				synchronized (this) {
 					sliceFunc = defaultSliceFunc;
@@ -164,6 +176,13 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 		return QuadProcessors.getCache(state);
 	}
 
+	protected enum TransformState {
+		NO_TRANSFORM,
+		NEXT_PASS,
+		STOP,
+		DISCARD
+	}
+
 	protected static class CtmQuadTransform /* implements QuadTransform */ {
 		protected final ProcessingContextImpl processingContext = new ProcessingContextImpl();
 		protected final RandomSource random = RandomSource.createThreadLocalInstance();
@@ -174,7 +193,7 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 		protected BlockState state;
 		protected long randomSeed;
 		// protected Predicate<@Nullable Direction> cullTest;
-		protected Function<TextureAtlasSprite, QuadProcessors.Slice> sliceFunc;
+		protected /* Function<TextureAtlasSprite, QuadProcessors.Slice> */ QuadProcessors.SpriteKeyCache sliceFunc;
 		protected final ObjectArrayList<BlockStateModelPart> scratchRawParts = new ObjectArrayList<>();
 		protected final QuadCollectionBuilder scratchEmitter = new QuadCollectionBuilder();
 
@@ -182,49 +201,56 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 
 		// @Override
 		// public boolean transform(MutableQuadView quad) {
-		public boolean transform(MutableQuad quad) {
+		public TransformState transform(MutableQuad quad) {
 			/* if (cullTest.test(quad.direction())) {
 				return false;
 			} */
 
 			for (int pass = 0; pass < PASSES; pass++) {
-				Boolean result = transformOnce(quad, pass);
-				if (result != null) {
+				/* Boolean */ TransformState result = transformOnce(quad, pass);
+				if (result != /* null */ TransformState.NEXT_PASS) {
 					return result;
 				}
 			}
 
-			return true;
+			return /* true */ TransformState.STOP;
 		}
 
-		protected Boolean transformOnce( /* MutableQuadVie */ MutableQuad quad, int pass) {
+		protected /* Boolean */ TransformState transformOnce( /* MutableQuadVie */ MutableQuad quad, int pass) {
 			TextureAtlasSprite sprite = /* RenderUtil.getSpriteFinder().find(quad) */ quad.sprite();
 			QuadProcessors.Slice slice = sliceFunc.apply(sprite);
 			QuadProcessor[] processors = pass == 0 ? slice.processors() : slice.multipassProcessors();
-			for (QuadProcessor processor : processors) {
+
+			if (pass == 0 && processors.length == 0) {
+				return TransformState.NO_TRANSFORM;
+			}
+
+			for (int i = 0, s = processors.length; i < s; i++) {
+				QuadProcessor processor = processors[i];
+
 				random.setSeed(randomSeed);
 				QuadProcessor.ProcessingResult result = processor.processQuad(quad, sprite, level, pos, appearanceState, state, random, pass, processingContext);
 				if (result == QuadProcessor.ProcessingResult.NEXT_PROCESSOR) {
 					continue;
 				}
 				if (result == QuadProcessor.ProcessingResult.NEXT_PASS) {
-					return null;
+					return /* null */ TransformState.NEXT_PASS;
 				}
 				if (result == QuadProcessor.ProcessingResult.STOP) {
-					return true;
+					return /* true */ TransformState.STOP;
 				}
 				if (result == QuadProcessor.ProcessingResult.DISCARD) {
-					return false;
+					return /* false */ TransformState.DISCARD;
 				}
 			}
-			return true;
+			return /* true */ TransformState.STOP;
 		}
 
 		public boolean isActive() {
 			return active;
 		}
 
-		public void prepare(BlockAndTintGetter level, BlockPos pos, BlockState appearanceState, BlockState state, long randomSeed, /* Predicate<@Nullable Direction> cullTest, */ Function<TextureAtlasSprite, QuadProcessors.Slice> sliceFunc) {
+		public void prepare(BlockAndTintGetter level, BlockPos pos, BlockState appearanceState, BlockState state, long randomSeed, /* Predicate<@Nullable Direction> cullTest, */ /* Function<TextureAtlasSprite, QuadProcessors.Slice> */ QuadProcessors.SpriteKeyCache sliceFunc) {
 			this.level = level;
 			this.pos = pos;
 			this.appearanceState = appearanceState;
