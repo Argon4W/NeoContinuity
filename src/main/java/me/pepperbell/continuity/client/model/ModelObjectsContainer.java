@@ -34,7 +34,7 @@ public class ModelObjectsContainer {
 
 	public BakedQuad[] getQuadsHolder(int cacheIndex, int length) {
 		if (quadsHolder.length <= cacheIndex) {
-			quadsHolder = Arrays.copyOf(quadsHolder, length + 1);
+			quadsHolder = Arrays.copyOf(quadsHolder, cacheIndex + 1);
 		}
 
 		if (quadsHolder[cacheIndex] == null) {
