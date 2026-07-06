@@ -71,41 +71,36 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 		quadTransform.prepare(/* mutableMesh.emitter(), */ state);
 
 		super.collectParts(level, pos, state, random, quadTransform.scratchRawParts);
+		super.collectParts(level, pos, state, random, parts);
 
 		QuadCollectionBuilder emitter = quadTransform.extraQuadEmitter;
-		QuadCollectionBuilder scratch = quadTransform.scratchEmitter;
 
-		for (BlockStateModelPart part : quadTransform.scratchRawParts) {
+		for (int i = 0, s1 = quadTransform.scratchRawParts.size(); i < s1; i ++) {
+			BlockStateModelPart part = quadTransform.scratchRawParts.get(i);
+
 			emitter.reset();
-			scratch.reset();
 
-			for (Direction direction : RenderUtil.DIRECTIONS) {
+			for (int j = 0, s2 = RenderUtil.DIRECTIONS.length; j < s2; j ++) {
+				Direction direction = RenderUtil.DIRECTIONS[j];
+
 				emitter.setDirection(direction);
-				scratch.setDirection(direction);
 
-				for (BakedQuad quad : part.getQuads(direction)) {
-					var toEmit = scratch.getScratchQuad(quad);
+				List<BakedQuad> quads = part.getQuads(direction);
 
-					if (quadTransform.transform(toEmit)) {
-						scratch.emitQuad();
-					}
+				for (int k = 0, s3 = quads.size(); k < s3; k ++) {
+					quadTransform.transform(quads.get(k));
 				}
 			}
 
 			emitter.setDirection(null);
-			scratch.setDirection(null);
 
-			for (BakedQuad quad : part.getQuads(null)) {
-				var toEmit = scratch.getScratchQuad(quad);
+			List<BakedQuad> quads = part.getQuads(null);
 
-				if (quadTransform.transform(toEmit)) {
-					scratch.emitQuad();
-				}
+			for (int k = 0, s3 = quads.size(); k < s3; k ++) {
+				quadTransform.transform(quads.get(k));
 			}
 
-			scratch.addAll(emitter);
-
-			parts.add(new SimpleModelWrapper(scratch.build(container), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(emitter.build(container, i), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();
@@ -144,17 +139,16 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 		protected BlockState state;
 		// protected Predicate<@Nullable Direction> cullTest;
 		protected final ObjectArrayList<BlockStateModelPart> scratchRawParts = new ObjectArrayList<>();
-		protected final QuadCollectionBuilder scratchEmitter = new QuadCollectionBuilder();
 
 		protected boolean active;
 
 		// @Override
-		public boolean transform(/* MutableQuadView */ MutableQuad quad) {
+		public /* boolean */ void transform(/* MutableQuadView */ BakedQuad quad) {
 			/* if (cullTest.test(quad.cullFace())) {
 				return false;
 			} */
 
-			TextureAtlasSprite sprite = /* RenderUtil.getSpriteFinder().find(quad) */ quad.sprite();
+			TextureAtlasSprite sprite = /* RenderUtil.getSpriteFinder().find(quad) */ quad.materialInfo().sprite();
 			TextureAtlasSprite emissiveSprite = EmissiveSpriteApi.get().getEmissiveSprite(sprite);
 			if (emissiveSprite != null) {
 				MutableQuad toEmit = extraQuadEmitter.getScratchQuad(quad);
@@ -166,7 +160,7 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 				toEmit.setShade(false);
 				toEmit.setAmbientOcclusion(false);
 
-				ChunkSectionLayer renderLayer = quad.chunkLayer();
+				ChunkSectionLayer renderLayer = quad.materialInfo().layer();
 				if (renderLayer == ChunkSectionLayer.SOLID) {
 					// emitter.chunkLayer(ChunkSectionLayer.CUTOUT);
 					toEmit.setSprite(toEmit.sprite(), ChunkSectionLayer.CUTOUT, toEmit.itemRenderType());
@@ -176,7 +170,7 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 				// emitter.emit();
 				extraQuadEmitter.emitQuad();
 			}
-			return true;
+			// return true;
 		}
 
 		public boolean isActive() {

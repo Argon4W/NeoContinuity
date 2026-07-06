@@ -131,7 +131,7 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 
 			scratch.addAll(emitter);
 
-			parts.add(new SimpleModelWrapper(scratch.build(container), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(scratch.build(container, i), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();

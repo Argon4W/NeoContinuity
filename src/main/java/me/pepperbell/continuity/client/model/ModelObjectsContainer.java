@@ -16,28 +16,48 @@ public class ModelObjectsContainer {
 
 	public final ContinuityFeatureStatesImpl featureStates = new ContinuityFeatureStatesImpl();
 	// public final MutableMesh mutableMesh = Renderer.get().mutableMesh();
-	private BakedQuad[] quadsHolder = new BakedQuad[8];
+	private BakedQuad[][] quadsHolder = new BakedQuad[4][];
 
-	private final MutableSubList<BakedQuad>[] quadListCache = new MutableSubList[] {
-			new MutableSubList<BakedQuad>(),
-			new MutableSubList<BakedQuad>(),
-			new MutableSubList<BakedQuad>(),
-			new MutableSubList<BakedQuad>(),
-			new MutableSubList<BakedQuad>(),
-			new MutableSubList<BakedQuad>(),
-			new MutableSubList<BakedQuad>(),
-	};
+	private MutableSubList<BakedQuad>[][] quadListCache = new MutableSubList[4][];
 
-	public BakedQuad[] getQuadsHolder(int length) {
-		if (quadsHolder.length < length) {
-			quadsHolder = Arrays.copyOf(quadsHolder, length);
-		}
-
-		return quadsHolder;
+	private MutableSubList<BakedQuad>[] newQuadListCache() {
+		return new MutableSubList[] {
+				new MutableSubList<BakedQuad>(),
+				new MutableSubList<BakedQuad>(),
+				new MutableSubList<BakedQuad>(),
+				new MutableSubList<BakedQuad>(),
+				new MutableSubList<BakedQuad>(),
+				new MutableSubList<BakedQuad>(),
+				new MutableSubList<BakedQuad>(),
+		};
 	}
 
-	public List<BakedQuad> getQuadsList(List<BakedQuad> root, int index, int fromIndex, int toIndex) {
-		return quadListCache[index].update(root, fromIndex, toIndex);
+	public BakedQuad[] getQuadsHolder(int cacheIndex, int length) {
+		if (quadsHolder.length <= cacheIndex) {
+			quadsHolder = Arrays.copyOf(quadsHolder, length + 1);
+		}
+
+		if (quadsHolder[cacheIndex] == null) {
+			quadsHolder[cacheIndex] = new BakedQuad[length];
+		}
+
+		if (quadsHolder[cacheIndex].length < length) {
+			quadsHolder[cacheIndex] = Arrays.copyOf(quadsHolder[cacheIndex], length);
+		}
+
+		return quadsHolder[cacheIndex];
+	}
+
+	public List<BakedQuad> getQuadsList(List<BakedQuad> root, int cacheIndex, int index, int fromIndex, int toIndex) {
+		if (quadListCache.length <= cacheIndex) {
+			quadListCache = Arrays.copyOf(quadListCache, cacheIndex + 1);
+		}
+
+		if (quadListCache[cacheIndex] == null) {
+			quadListCache[cacheIndex] = newQuadListCache();
+		}
+
+		return quadListCache[cacheIndex][index].update(root, fromIndex, toIndex);
 	}
 
 	public static ModelObjectsContainer get() {
