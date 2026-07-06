@@ -1,5 +1,6 @@
 package me.pepperbell.continuity.client.model;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import me.pepperbell.continuity.impl.client.ContinuityFeatureStatesImpl;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 
@@ -33,6 +34,10 @@ public class ModelObjectsContainer {
 	}
 
 	public BakedQuad[] getQuadsHolder(int cacheIndex, int length) {
+		if (RenderSystem.isOnRenderThread()) {
+			return new BakedQuad[length];
+		}
+
 		if (quadsHolder.length <= cacheIndex) {
 			quadsHolder = Arrays.copyOf(quadsHolder, cacheIndex + 1);
 		}
@@ -49,6 +54,10 @@ public class ModelObjectsContainer {
 	}
 
 	public List<BakedQuad> getQuadsList(List<BakedQuad> root, int cacheIndex, int index, int fromIndex, int toIndex) {
+		if (RenderSystem.isOnRenderThread()) {
+			return root.subList(fromIndex, toIndex);
+		}
+
 		if (quadListCache.length <= cacheIndex) {
 			quadListCache = Arrays.copyOf(quadListCache, cacheIndex + 1);
 		}
