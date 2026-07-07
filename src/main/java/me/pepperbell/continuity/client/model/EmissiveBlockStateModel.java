@@ -70,13 +70,12 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 
 		quadTransform.prepare(/* mutableMesh.emitter(), */ state);
 
-		super.collectParts(level, pos, state, random, quadTransform.scratchRawParts);
 		super.collectParts(level, pos, state, random, parts);
 
 		QuadCollectionBuilder emitter = quadTransform.extraQuadEmitter;
 
-		for (int i = 0, s1 = quadTransform.scratchRawParts.size(); i < s1; i ++) {
-			BlockStateModelPart part = quadTransform.scratchRawParts.get(i);
+		for (int i = 0, s1 = parts.size(); i < s1; i ++) {
+			BlockStateModelPart part = parts.get(i);
 
 			emitter.reset();
 
@@ -100,7 +99,7 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 				quadTransform.transform(quads.get(k));
 			}
 
-			parts.add(new SimpleModelWrapper(emitter.build(container, i), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(emitter.build(quadTransform, i), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();
@@ -134,11 +133,10 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 		return new Key(subkey);
 	}
 
-	protected static class EmissiveQuadTransform /* implements QuadTransform */ {
+	protected static class EmissiveQuadTransform /* implements QuadTransform */ extends ModelThreadContext {
 		protected QuadCollectionBuilder extraQuadEmitter = new QuadCollectionBuilder();
 		protected BlockState state;
 		// protected Predicate<@Nullable Direction> cullTest;
-		protected final ObjectArrayList<BlockStateModelPart> scratchRawParts = new ObjectArrayList<>();
 
 		protected boolean active;
 
@@ -181,8 +179,6 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 			// this.emitter = emitter;
 			this.state = state;
 			// this.cullTest = cullTest;
-
-			this.scratchRawParts.clear();
 
 			active = true;
 		}

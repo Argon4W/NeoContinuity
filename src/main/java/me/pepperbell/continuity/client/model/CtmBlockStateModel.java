@@ -131,7 +131,7 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 
 			scratch.addAll(emitter);
 
-			parts.add(new SimpleModelWrapper(scratch.build(container, i), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(scratch.build(quadTransform, i), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();
@@ -183,7 +183,7 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 		DISCARD
 	}
 
-	protected static class CtmQuadTransform /* implements QuadTransform */ {
+	protected static class CtmQuadTransform /* implements QuadTransform */ extends ModelThreadContext {
 		protected final ProcessingContextImpl processingContext = new ProcessingContextImpl();
 		protected final RandomSource random = RandomSource.createThreadLocalInstance();
 

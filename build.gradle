@@ -146,6 +146,7 @@ dependencies {
 
     // Sodium API Dependency for Sodium compatible config screen.
     compileOnly 'net.caffeinemc:sodium-neoforge-api:0.8.10+mc26.1.2'
+    compileOnly 'net.caffeinemc:sodium-neoforge-mod:0.8.10+mc26.1.2'
 
     // Sodium Mod at runtime for testing.
     // runtimeOnly 'net.caffeinemc:sodium-neoforge:0.8.10+mc26.1.2'
