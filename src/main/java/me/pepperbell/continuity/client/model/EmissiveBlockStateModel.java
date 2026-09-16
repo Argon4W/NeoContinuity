@@ -174,16 +174,16 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 				MutableQuad toEmit = extraQuadEmitter.getScratchQuad(quad);
 
 				// emitter.copyFrom(quad);
-				// emitter.emissive(true).diffuseShade(false).ambientOcclusion(TriState.FALSE);
+				// emitter.emissive(true).shadeDirectionOverride(Direction.UP).ambientOcclusion(TriState.FALSE);
 
 				toEmit.setLightEmission(15);
-				toEmit.setShade(false);
+				toEmit.setShadeOverride(Direction.UP);
 				toEmit.setAmbientOcclusion(false);
 
 				ChunkSectionLayer renderLayer = quad.materialInfo().layer();
 				if (renderLayer == ChunkSectionLayer.SOLID) {
 					// emitter.chunkLayer(ChunkSectionLayer.CUTOUT);
-					toEmit.setSprite(toEmit.sprite(), ChunkSectionLayer.CUTOUT, toEmit.itemRenderType());
+					toEmit.setSprite(toEmit.sprite(), ChunkSectionLayer.CUTOUT, toEmit.itemRenderType(), toEmit.itemGlintRenderType(), toEmit.itemGlintSpecialRenderType());
 				}
 
 				QuadUtil.interpolate(/* emitter */ toEmit, sprite, emissiveSprite);

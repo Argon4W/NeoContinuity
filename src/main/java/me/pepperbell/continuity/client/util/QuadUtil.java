@@ -1,29 +1,18 @@
 package me.pepperbell.continuity.client.util;
 
-// import net.fabricmc.fabric.impl.client.indigo.renderer.mesh.MutableMeshImpl;
 import me.pepperbell.continuity.client.model.QuadCollectionBuilder;
-		import net.minecraft.util.TriState;
+import net.minecraft.util.TriState;
 import net.neoforged.neoforge.client.model.quad.MutableQuad;
-import org.jetbrains.annotations.Nullable;
-
-import me.pepperbell.continuity.client.mixinterface.TextureAtlasSpriteExtension;
-// import net.fabricmc.fabric.api.client.renderer.v1.Renderer;
-// import net.fabricmc.fabric.api.client.renderer.v1.mesh.Mesh;
-// import net.fabricmc.fabric.api.client.renderer.v1.mesh.MeshView;
-// import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableMesh;
 // import net.fabricmc.fabric.api.client.renderer.v1.mesh.MutableQuadView;
 // import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadAtlas;
 // import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 // import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadView;
-// import net.fabricmc.fabric.api.client.renderer.v1.model.MeshQuadCollection;
-// import net.fabricmc.fabric.api.client.renderer.v1.sprite.SpriteFinderGetter;
 // import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.model.geom.builders.UVPair;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
-import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.core.Direction;
 
 public final class QuadUtil {
@@ -41,7 +30,7 @@ public final class QuadUtil {
 			);
 		}
 		// quad.animated(newSprite.contents().isAnimated());
-		quad.setSprite(newSprite, quad.chunkLayer(), quad.itemRenderType());
+		quad.setSprite(newSprite, quad.chunkLayer(), quad.itemRenderType(), quad.itemGlintRenderType(), quad.itemGlintSpecialRenderType());
 	}
 
 	public static void interpolate(BakedQuad quad, PackedUvContainer output, TextureAtlasSprite oldSprite, TextureAtlasSprite newSprite) {
@@ -125,7 +114,12 @@ public final class QuadUtil {
 		emitter.animated(sprite.contents().isAnimated());
 		emitter.chunkLayer(chunkLayer);
 		emitter.itemRenderType(chunkLayer == ChunkSectionLayer.TRANSLUCENT ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet()); */
-		quad.setSprite(sprite, chunkLayer, chunkLayer == ChunkSectionLayer.TRANSLUCENT ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet());
+		if (chunkLayer == ChunkSectionLayer.TRANSLUCENT) {
+			quad.setSprite(sprite, chunkLayer, Sheets.translucentBlockItemSheet(), Sheets.translucentBlockItemGlintSheet(), Sheets.translucentBlockItemGlintSpecialSheet());
+		} else {
+			quad.setSprite(sprite, chunkLayer, Sheets.cutoutBlockItemSheet(), Sheets.cutoutBlockItemGlintSheet(), Sheets.cutoutBlockItemGlintSpecialSheet());
+		}
+
 		quad.setAmbientOcclusion(ao.toBoolean(true));
 		emitter.emitQuad(); // emitter.emit();
 	}
@@ -254,37 +248,6 @@ public final class QuadUtil {
 		// up/+y -> 0, left/-x -> 1, down/-y -> 2, right/+x -> 3
 		// Add 4 if the UV winding order is clockwise
 		return (Math.abs(y) >= Math.abs(x) ? (y > 0 ? 0 : 2) : (x > 0 ? 3 : 1)) + (determinant < 0 ? 4 : 0);
-	}
-
-	@Nullable
-	public static QuadCollection createEmissiveQuads(QuadCollection quads /* , @Nullable SpriteFinderGetter spriteFinderGetter */) {
-		/* if (quads instanceof MeshQuadCollection meshQuadCollection) {
-			if (spriteFinderGetter == null) {
-				return null;
-			}
-
-			Mesh emissiveMesh = createEmissiveMesh(meshQuadCollection.getMesh(), spriteFinderGetter);
-			return emissiveMesh != null ? new MeshQuadCollection(emissiveMesh) : null;
-		} */
-
-		QuadCollection.Builder emissiveQuadsBuilder = null;
-		PackedUvContainer output = null;
-		for (BakedQuad quad : quads.getAll()) {
-			BakedQuad.MaterialInfo materialInfo = quad.materialInfo();
-			TextureAtlasSprite emissiveSprite = ((TextureAtlasSpriteExtension) materialInfo.sprite()).continuity$getEmissiveSprite();
-			if (emissiveSprite != null) {
-				if (emissiveQuadsBuilder == null) {
-					output = new PackedUvContainer();
-					emissiveQuadsBuilder = new QuadCollection.Builder();
-				}
-
-				interpolate(quad, output, quad.materialInfo().sprite(), emissiveSprite);
-				BakedQuad.MaterialInfo emissiveMaterialInfo = new BakedQuad.MaterialInfo(emissiveSprite, materialInfo.layer(), materialInfo.itemRenderType(), materialInfo.tintIndex(), false, 15);
-				BakedQuad emissiveQuad = new BakedQuad(quad.position0(), quad.position1(), quad.position2(), quad.position3(), output.packedUV0, output.packedUV1, output.packedUV2, output.packedUV3, quad.direction(), emissiveMaterialInfo);
-				emissiveQuadsBuilder.addUnculledFace(emissiveQuad);
-			}
-		}
-		return emissiveQuadsBuilder != null ? emissiveQuadsBuilder.build() : null;
 	}
 
 	/* Nullable

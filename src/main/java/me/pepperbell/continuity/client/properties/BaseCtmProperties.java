@@ -27,13 +27,11 @@ import me.pepperbell.continuity.client.util.biome.BiomeHolder;
 import me.pepperbell.continuity.client.util.biome.BiomeHolderManager;
 import me.pepperbell.continuity.client.util.biome.BiomeSetPredicate;
 import net.minecraft.IdentifierException;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackResources;
-import net.minecraft.server.packs.VanillaPackResources;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.level.biome.Biome;
@@ -589,8 +587,6 @@ public class BaseCtmProperties implements CtmProperties {
 
 		String[] conditionStrs = conditionsStr.trim().split("\\|");
 		if (conditionStrs.length != 0) {
-			VanillaPackResources defaultPack = Minecraft.getInstance().getVanillaPackResources();
-
 			for (int i = 0; i < conditionStrs.length; i++) {
 				String conditionStr = conditionStrs[i];
 				if (conditionStr.isEmpty()) {
@@ -617,13 +613,13 @@ public class BaseCtmProperties implements CtmProperties {
 
 					if (packStr == null || packStr.equals("default")) {
 						Optional<Resource> optionalResource = resourceManager.getResource(resourceId);
-						if (optionalResource.isPresent() && optionalResource.get().source() != defaultPack) {
+						if (optionalResource.isPresent() && !optionalResource.get().sourcePackId().equals("vanilla")) {
 							valid = false;
 							break;
 						}
 					} else if (packStr.equals("programmer_art")) {
 						Optional<Resource> optionalResource = resourceManager.getResource(resourceId);
-						if (optionalResource.isPresent() && !optionalResource.get().source().packId().equals("programmer_art")) {
+						if (optionalResource.isPresent() && !optionalResource.get().sourcePackId().equals("programmer_art")) {
 							valid = false;
 							break;
 						}
