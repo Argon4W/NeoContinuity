@@ -7,6 +7,7 @@ import net.neoforged.neoforge.client.model.quad.MutableQuad;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.IntFunction;
 
 public class QuadCollectionBuilder {
 	private final MutableQuad scratchQuad;
@@ -77,7 +78,7 @@ public class QuadCollectionBuilder {
 		}
 	}
 
-	public QuadCollection build(ModelThreadContext context, int cacheIndex) {
+	public QuadCollection build(IntFunction<BakedQuad[]> generator) {
 		int downCount = cursors[0];
 		int upCount = cursors[1];
 		int northCount = cursors[2];
@@ -91,37 +92,37 @@ public class QuadCollectionBuilder {
 			return QuadCollection.EMPTY;
 		}
 
-		BakedQuad[] allQuads = context.getQuadsHolder(cacheIndex, allCount);
+		BakedQuad[] allQuads = generator.apply(allCount);
 		List<BakedQuad> allList = Arrays.asList(allQuads);
 
 		int offset = 0;
 
 		System.arraycopy(all[0], 0, allQuads, offset, downCount);
-		List<BakedQuad> downList = context.getQuadsList(allList, cacheIndex, 0, offset, offset + downCount);
+		List<BakedQuad> downList = allList.subList(offset, offset + downCount);
 		offset += downCount;
 
 		System.arraycopy(all[1], 0, allQuads, offset, upCount);
-		List<BakedQuad> upList = context.getQuadsList(allList, cacheIndex, 1, offset, offset + upCount);
+		List<BakedQuad> upList = allList.subList(offset, offset + upCount);
 		offset += upCount;
 
 		System.arraycopy(all[2], 0, allQuads, offset, northCount);
-		List<BakedQuad> northList = context.getQuadsList(allList, cacheIndex, 2, offset, offset + northCount);
+		List<BakedQuad> northList = allList.subList(offset, offset + northCount);
 		offset += northCount;
 
 		System.arraycopy(all[3], 0, allQuads, offset, southCount);
-		List<BakedQuad> southList = context.getQuadsList(allList, cacheIndex, 3, offset, offset + southCount);
+		List<BakedQuad> southList = allList.subList(offset, offset + southCount);
 		offset += southCount;
 
 		System.arraycopy(all[4], 0, allQuads, offset, westCount);
-		List<BakedQuad> westList = context.getQuadsList(allList, cacheIndex, 4, offset, offset + westCount);
+		List<BakedQuad> westList = allList.subList(offset, offset + westCount);
 		offset += westCount;
 
 		System.arraycopy(all[5], 0, allQuads, offset, eastCount);
-		List<BakedQuad> eastList = context.getQuadsList(allList, cacheIndex, 5, offset, offset + eastCount);
+		List<BakedQuad> eastList = allList.subList(offset, offset + eastCount);
 		offset += eastCount;
 
 		System.arraycopy(all[6], 0, allQuads, offset, unculledCount);
-		List<BakedQuad> unculledList = context.getQuadsList(allList, cacheIndex, 6, offset, offset + unculledCount);
+		List<BakedQuad> unculledList = allList.subList(offset, offset + unculledCount);
 
 		return new QuadCollection(
 				allList,

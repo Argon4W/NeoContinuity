@@ -7,6 +7,7 @@ import me.pepperbell.continuity.client.util.RenderUtil;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.resources.model.SimpleModelWrapper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.DelegateBlockStateModel;
 import net.neoforged.neoforge.client.model.quad.MutableQuad;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +59,8 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 			return;
 		}
 
+		container.push();
+
 		/* MutableMesh mutableMesh = container.mutableMesh;
 		quadTransform.prepare(mutableMesh.emitter(), state, cullTest);
 
@@ -74,6 +77,9 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 
 		QuadCollectionBuilder emitter = quadTransform.extraQuadEmitter;
 
+		int faceCached = 0;
+		int faceRender = 0;
+
 		for (int i = 0, s1 = parts.size(); i < s1; i ++) {
 			BlockStateModelPart part = parts.get(i);
 
@@ -81,6 +87,20 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 
 			for (int j = 0, s2 = RenderUtil.DIRECTIONS.length; j < s2; j ++) {
 				Direction direction = RenderUtil.DIRECTIONS[j];
+
+				int mask = 1 << direction.ordinal();
+
+				if ((faceCached & mask) == 0) {
+					faceCached |= mask;
+
+					if (Block.shouldRenderFace(level, pos, state, level.getBlockState(container.scratchPos.setWithOffset(pos, direction)), direction)) {
+						faceRender |= mask;
+					}
+				}
+
+				if ((faceRender & mask) == 0) {
+					continue;
+				}
 
 				emitter.setDirection(direction);
 
@@ -99,10 +119,12 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 				quadTransform.transform(quads.get(k));
 			}
 
-			parts.add(new SimpleModelWrapper(emitter.build(quadTransform, i), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(emitter.build(container), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();
+
+		container.pop();
 	}
 
 	@Override
@@ -133,7 +155,7 @@ public class EmissiveBlockStateModel extends /* WrapperBlockStateModel */ Delega
 		return new Key(subkey);
 	}
 
-	protected static class EmissiveQuadTransform /* implements QuadTransform */ extends ModelThreadContext {
+	/* protected */ public static class EmissiveQuadTransform /* implements QuadTransform */ {
 		protected QuadCollectionBuilder extraQuadEmitter = new QuadCollectionBuilder();
 		protected BlockState state;
 		// protected Predicate<@Nullable Direction> cullTest;
