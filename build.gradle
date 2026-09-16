@@ -149,7 +149,7 @@ dependencies {
     compileOnly 'net.caffeinemc:sodium-neoforge-mod:0.9.2+mc26.2'
 
     // Sodium Mod at runtime for testing.
-    // runtimeOnly 'net.caffeinemc:sodium-neoforge:0.8.10+mc26.1.2'
+    runtimeOnly 'net.caffeinemc:sodium-neoforge:0.9.2+mc26.2'
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
