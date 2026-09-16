@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.resources.model.SimpleModelWrapper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.DelegateBlockStateModel;
 import net.neoforged.neoforge.client.model.quad.MutableQuad;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +47,6 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 			super.collectParts(level, pos, state, random, parts);
 			return;
 		}
-
 		ModelObjectsContainer container = ModelObjectsContainer.get();
 		if (!container.featureStates.getConnectedTexturesState().isEnabled()) {
 			// super.emitQuads(emitter, level, pos, state, random, cullTest);
@@ -60,6 +60,8 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 			super.collectParts(level, pos, state, random, parts);
 			return;
 		}
+
+		container.push();
 
 		// The correct way to get the appearance of the origin state from within a block model is to call getAppearance
 		// on the passed world state and pass the pos and world state of the adjacent block as the source pos and source
@@ -87,6 +89,9 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 		QuadCollectionBuilder emitter = quadTransform.processingContext.getExtraQuadEmitter();
 		QuadCollectionBuilder scratch = quadTransform.scratchEmitter;
 
+		int faceCached = 0;
+		int faceRender = 0;
+
 		for (int i = 0, s1 = quadTransform.scratchRawParts.size(); i < s1; i ++) {
 			BlockStateModelPart part = quadTransform.scratchRawParts.get(i);
 
@@ -95,6 +100,20 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 
 			for (int j = 0, s2 = RenderUtil.DIRECTIONS.length; j < s2; j ++) {
 				Direction direction = RenderUtil.DIRECTIONS[j];
+
+				int mask = 1 << direction.ordinal();
+
+				if ((faceCached & mask) == 0) {
+					faceCached |= mask;
+
+					if (Block.shouldRenderFace(level, pos, state, level.getBlockState(container.scratchPos.setWithOffset(pos, direction)), direction)) {
+						faceRender |= mask;
+					}
+				}
+
+				if ((faceRender & mask) == 0) {
+					continue;
+				}
 
 				emitter.setDirection(direction);
 				scratch.setDirection(direction);
@@ -131,10 +150,12 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 
 			scratch.addAll(emitter);
 
-			parts.add(new SimpleModelWrapper(scratch.build(quadTransform, i), part.useAmbientOcclusion(), part.particleMaterial()));
+			parts.add(new SimpleModelWrapper(scratch.build(container), part.useAmbientOcclusion(), part.particleMaterial()));
 		}
 
 		quadTransform.reset();
+
+		container.pop();
 	}
 
 	@Override
@@ -176,14 +197,14 @@ public class CtmBlockStateModel extends /* WrapperBlockStateModel */ DelegateBlo
 		return QuadProcessors.getCache(state);
 	}
 
-	protected enum TransformState {
+	public enum TransformState {
 		NO_TRANSFORM,
 		NEXT_PASS,
 		STOP,
 		DISCARD
 	}
 
-	protected static class CtmQuadTransform /* implements QuadTransform */ extends ModelThreadContext {
+	/* protected */ public static class CtmQuadTransform /* implements QuadTransform */ {
 		protected final ProcessingContextImpl processingContext = new ProcessingContextImpl();
 		protected final RandomSource random = RandomSource.createThreadLocalInstance();
 
