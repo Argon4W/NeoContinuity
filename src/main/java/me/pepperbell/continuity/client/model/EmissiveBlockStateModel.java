@@ -104,7 +104,7 @@ public class EmissiveBlockStateModel extends WrapperBlockStateModel {
 			TextureAtlasSprite emissiveSprite = EmissiveSpriteApi.get().getEmissiveSprite(sprite);
 			if (emissiveSprite != null) {
 				emitter.copyFrom(quad);
-				emitter.emissive(true).diffuseShade(false).ambientOcclusion(TriState.FALSE);
+				emitter.emissive(true).shadeDirectionOverride(Direction.UP).ambientOcclusion(TriState.FALSE);
 
 				ChunkSectionLayer renderLayer = quad.chunkLayer();
 				if (renderLayer == ChunkSectionLayer.SOLID) {
